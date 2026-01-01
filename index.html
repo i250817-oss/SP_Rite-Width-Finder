@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SP_Rite Width Finder - Sprite Coordinate Detection Tool</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+      color: #f8fafc;
+      min-height: 100vh;
+    }
+
+    .mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .sprite-checkerboard {
+      background-image:
+        linear-gradient(45deg, #1e293b 25%, transparent 25%),
+        linear-gradient(-45deg, #1e293b 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, #1e293b 75%),
+        linear-gradient(-45deg, transparent 75%, #1e293b 75%);
+      background-size: 20px 20px;
+      background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    main {
+      flex: 1;
+    }
+
+    button {
+      transition: all 0.3s ease;
+    }
+
+    input, textarea {
+      transition: all 0.2s ease;
+    }
+
+    input:focus, textarea:focus {
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    .hidden-file-input {
+      display: none;
+    }
+
+    canvas {
+      image-rendering: pixelated;
+      image-rendering: -moz-crisp-edges;
+      image-rendering: crisp-edges;
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header class="bg-slate-950 border-b border-slate-700 shadow-lg">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+      <div class="flex justify-between items-center">
+        <h1 class="text-3xl font-bold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent cursor-pointer hover:scale-105 transition-transform" onclick="navigateTo('landing')">
+          SP_Rite Width Finder
+        </h1>
+        <nav class="flex gap-6">
+          <button onclick="navigateTo('landing')" id="nav-landing" class="px-4 py-2 rounded-lg transition-colors bg-blue-500 text-white">
+            Home
+          </button>
+          <button onclick="navigateTo('tool')" id="nav-tool" class="px-4 py-2 rounded-lg transition-colors text-slate-300 hover:text-white hover:bg-slate-800">
+            Tool
+          </button>
+          <button onclick="navigateTo('feedback')" id="nav-feedback" class="px-4 py-2 rounded-lg transition-colors text-slate-300 hover:text-white hover:bg-slate-800">
+            Feedback
+          </button>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="flex-grow bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+    <div id="landing-page" class="page-content">
+      <!-- Landing Page -->
+      <section class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24">
+        <div class="text-center">
+          <h1 class="text-5xl sm:text-6xl font-bold mb-6">
+            <span class="bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-500 bg-clip-text text-transparent">
+              SP_Rite Width Finder
+            </span>
+          </h1>
+          <p class="text-xl text-slate-300 mb-8 max-w-2xl mx-auto">
+            Finding the exact position, width, height, or coordinates of a sprite can be frustrating. 
+            <span class="text-blue-400 font-semibold"> SP_Rite Width Finder</span> is designed to make 
+            sprite management fast, precise, and frustration-free.
+          </p>
+          <button onclick="navigateTo('tool')" class="inline-block px-8 py-4 bg-gradient-to-r from-blue-500 to-cyan-500 text-white font-bold rounded-lg hover:shadow-lg hover:shadow-blue-500/50 transition-all transform hover:scale-105">
+            Get Started 🚀
+          </button>
+        </div>
+      </section>
+
+      <!-- Features Section -->
+      <section class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <h2 class="text-4xl font-bold text-center mb-12 text-white">Key Features</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div class="bg-slate-800 border border-slate-700 rounded-lg p-6 hover:border-blue-500 transition-colors">
+            <h3 class="text-xl font-bold text-white mb-3">📍 Position Detection</h3>
+            <p class="text-slate-300">Automatically finds the X and Y coordinates of your sprite</p>
+          </div>
+          <div class="bg-slate-800 border border-slate-700 rounded-lg p-6 hover:border-blue-500 transition-colors">
+            <h3 class="text-xl font-bold text-white mb-3">📏 Width & Height Calculation</h3>
+            <p class="text-slate-300">Measures exact dimensions for accurate placement</p>
+          </div>
+          <div class="bg-slate-800 border border-slate-700 rounded-lg p-6 hover:border-blue-500 transition-colors">
+            <h3 class="text-xl font-bold text-white mb-3">✂️ Cutting & Cropping</h3>
+            <p class="text-slate-300">Easily crop your sprite or specific pixel areas</p>
+          </div>
+          <div class="bg-slate-800 border border-slate-700 rounded-lg p-6 hover:border-blue-500 transition-colors">
+            <h3 class="text-xl font-bold text-white mb-3">🎯 Pixel-Level Mapping</h3>
+            <p class="text-slate-300">Determines the position of each individual pixel</p>
+          </div>
+          <div class="bg-slate-800 border border-slate-700 rounded-lg p-6 hover:border-blue-500 transition-colors">
+            <h3 class="text-xl font-bold text-white mb-3">🏷️ Custom Renaming</h3>
+            <p class="text-slate-300">Rename pixels or sprites for better organization</p>
+          </div>
+          <div class="bg-slate-800 border border-slate-700 rounded-lg p-6 hover:border-blue-500 transition-colors">
+            <h3 class="text-xl font-bold text-white mb-3">📊 Excel Export</h3>
+            <p class="text-slate-300">Download a complete CSV file with all sprite data</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- About Section -->
+      <section class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <div class="bg-slate-800 border border-slate-700 rounded-lg p-8">
+          <h2 class="text-3xl font-bold text-white mb-6">About This Project</h2>
+          <div class="space-y-4 text-slate-300">
+            <p>
+              I developed SP_Rite Width Finder while creating my own game because I found manually locating 
+              sprite positions too time-consuming and frustrating. With the help of AI tools and personal 
+              experience, this tool simplifies sprite handling significantly.
+            </p>
+            <p>
+              SP_Rite Width Finder helps <span class="text-blue-400 font-semibold">students</span> and
+              <span class="text-blue-400 font-semibold"> developers</span> save time and avoid errors when:
+            </p>
+            <ul class="list-disc list-inside space-y-2 ml-4">
+              <li>Learning game development</li>
+              <li>Building complex game projects</li>
+              <li>Managing sprite sheets efficiently</li>
+              <li>Placing sprites precisely in your games</li>
+            </ul>
+            <p class="pt-4 border-t border-slate-600">
+              This project is a small tool with a <span class="text-blue-400 font-semibold">big impact</span> on 
+              productivity and accuracy. Whether you're a beginner or an experienced developer, 
+              SP_Rite Width Finder ensures precision and efficiency.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- CTA Section -->
+      <section class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <div class="bg-gradient-to-r from-blue-600 to-cyan-600 rounded-lg p-8 text-center">
+          <h2 class="text-3xl font-bold text-white mb-4">Ready to Simplify Your Workflow?</h2>
+          <p class="text-white mb-6 text-lg">
+            Start finding sprite coordinates, dimensions, and pixel positions instantly.
+          </p>
+          <button onclick="navigateTo('tool')" class="px-8 py-3 bg-white text-blue-600 font-bold rounded-lg hover:shadow-lg transition-all transform hover:scale-105">
+            Launch the Tool Now
+          </button>
+        </div>
+      </section>
+    </div>
+
+    <div id="tool-page" class="page-content hidden">
+      <!-- Tool Page -->
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <h2 class="text-4xl font-bold text-white mb-8">Sprite Coordinate Finder</h2>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <!-- Canvas Area -->
+          <div class="lg:col-span-2">
+            <div class="bg-slate-800 border-2 border-slate-700 rounded-lg p-6">
+              <div class="mb-6">
+                <label class="block text-white font-semibold mb-3">
+                  Upload Sprite Sheet
+                </label>
+                <input type="file" id="file-input" class="hidden-file-input" accept="image/*" onchange="handleImageUpload(event)">
+                <button onclick="document.getElementById('file-input').click()" class="w-full px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-lg transition-colors">
+                  📤 Choose Image
+                </button>
+              </div>
+
+              <div id="image-container" class="bg-slate-900 rounded-lg p-4 sprite-checkerboard hidden">
+                <img id="sprite-image" alt="Sprite sheet" class="max-w-full h-auto rounded cursor-crosshair" onload="handleImageLoad(event)">
+                <canvas id="canvas" class="hidden"></canvas>
+              </div>
+
+              <div id="no-image" class="bg-slate-900 rounded-lg p-16 text-center border-2 border-dashed border-slate-600">
+                <p class="text-slate-400 text-lg">📸 No image selected</p>
+                <p class="text-slate-500 text-sm mt-2">Upload a sprite sheet to get started</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Info Panel -->
+          <div>
+            <!-- Pixel Info -->
+            <div id="pixel-info-section" class="bg-slate-800 border border-slate-700 rounded-lg p-6 mb-6 hidden">
+              <h3 class="text-white font-bold text-lg mb-4">📍 Pixel Info</h3>
+              <div class="space-y-3 text-sm">
+                <div>
+                  <span class="text-slate-400">X Position:</span>
+                  <span class="text-blue-400 font-mono ml-2" id="pixel-x">-</span>
+                </div>
+                <div>
+                  <span class="text-slate-400">Y Position:</span>
+                  <span class="text-blue-400 font-mono ml-2" id="pixel-y">-</span>
+                </div>
+                <div>
+                  <span class="text-slate-400">Color:</span>
+                  <span class="text-blue-400 font-mono ml-2" id="pixel-color">N/A</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Sprites Data -->
+            <div class="bg-slate-800 border border-slate-700 rounded-lg p-6">
+              <div class="flex justify-between items-center mb-4">
+                <h3 class="text-white font-bold text-lg">🎯 Detected Sprites</h3>
+                <span id="sprite-count" class="bg-blue-500 text-white text-xs font-bold px-3 py-1 rounded-full">0</span>
+              </div>
+
+              <div id="sprites-list" class="space-y-3 max-h-80 overflow-y-auto">
+                <p class="text-slate-400 text-sm text-center py-4">No sprites detected yet</p>
+              </div>
+
+              <div id="export-section" class="hidden mt-4 space-y-2">
+                <button onclick="exportToCSV()" class="w-full px-4 py-2 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-lg transition-colors text-sm">
+                  📊 Export to CSV
+                </button>
+                <button onclick="clearData()" class="w-full px-4 py-2 bg-red-500 hover:bg-red-600 text-white font-semibold rounded-lg transition-colors text-sm">
+                  🗑️ Clear Data
+                </button>
+              </div>
+            </div>
+
+            <!-- Selected Sprite Details -->
+            <div id="sprite-details-section" class="bg-slate-800 border border-blue-500 rounded-lg p-6 mt-6 hidden">
+              <h3 class="text-white font-bold text-lg mb-4">📋 Sprite Details</h3>
+              <div class="space-y-3 text-sm">
+                <div>
+                  <label class="text-slate-400 block mb-1">Name:</label>
+                  <input type="text" id="sprite-name" class="w-full bg-slate-700 text-white px-3 py-2 rounded border border-slate-600" onchange="updateSelectedSprite()">
+                </div>
+                <div>
+                  <label class="text-slate-400">X: <span id="sprite-x">0</span></label>
+                </div>
+                <div>
+                  <label class="text-slate-400">Y: <span id="sprite-y">0</span></label>
+                </div>
+                <div>
+                  <label class="text-slate-400">Width: <span id="sprite-width">32</span></label>
+                </div>
+                <div>
+                  <label class="text-slate-400">Height: <span id="sprite-height">32</span></label>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="feedback-page" class="page-content hidden">
+      <!-- Feedback Page -->
+      <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div class="mb-12">
+          <h2 class="text-4xl font-bold text-white mb-4">💬 Feedback & Bug Reports</h2>
+          <p class="text-slate-300 text-lg">
+            Help us improve SP_Rite Width Finder by reporting bugs, suggesting features, or sharing your feedback.
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <!-- Form -->
+          <div class="lg:col-span-2">
+            <div class="bg-slate-800 border border-slate-700 rounded-lg p-8">
+              <form id="feedback-form" onsubmit="handleFeedbackSubmit(event)" class="space-y-6">
+                <!-- Feedback Type -->
+                <div>
+                  <label class="block text-white font-semibold mb-3">Feedback Type *</label>
+                  <div class="flex gap-4">
+                    <label class="flex items-center gap-2 cursor-pointer">
+                      <input type="radio" name="feedbackType" value="bug" checked class="w-4 h-4">
+                      <span class="text-slate-300">Bug</span>
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer">
+                      <input type="radio" name="feedbackType" value="feature" class="w-4 h-4">
+                      <span class="text-slate-300">Feature</span>
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer">
+                      <input type="radio" name="feedbackType" value="suggestion" class="w-4 h-4">
+                      <span class="text-slate-300">Suggestion</span>
+                    </label>
+                  </div>
+                </div>
+
+                <!-- Name -->
+                <div>
+                  <label class="block text-white font-semibold mb-2">Your Name *</label>
+                  <input type="text" name="name" placeholder="Ahmad Ali" class="w-full bg-slate-700 text-white px-4 py-3 rounded-lg border border-slate-600 focus:border-blue-500 focus:outline-none transition-colors" required>
+                </div>
+
+                <!-- Email -->
+                <div>
+                  <label class="block text-white font-semibold mb-2">Email Address *</label>
+                  <input type="email" name="email" placeholder="your@email.com" class="w-full bg-slate-700 text-white px-4 py-3 rounded-lg border border-slate-600 focus:border-blue-500 focus:outline-none transition-colors" required>
+                </div>
+
+                <!-- Title -->
+                <div>
+                  <label class="block text-white font-semibold mb-2">Title *</label>
+                  <input type="text" name="title" placeholder="Brief summary of your feedback" class="w-full bg-slate-700 text-white px-4 py-3 rounded-lg border border-slate-600 focus:border-blue-500 focus:outline-none transition-colors" required>
+                </div>
+
+                <!-- Description -->
+                <div>
+                  <label class="block text-white font-semibold mb-2">Description *</label>
+                  <textarea name="description" placeholder="Please provide detailed information about your feedback..." rows="6" class="w-full bg-slate-700 text-white px-4 py-3 rounded-lg border border-slate-600 focus:border-blue-500 focus:outline-none transition-colors resize-none" required></textarea>
+                </div>
+
+                <!-- Submit Button -->
+                <button type="submit" class="w-full px-6 py-3 bg-gradient-to-r from-blue-500 to-cyan-500 text-white font-bold rounded-lg hover:shadow-lg hover:shadow-blue-500/50 transition-all">
+                  Submit Feedback
+                </button>
+              </form>
+
+              <div id="feedback-success" class="hidden text-center py-12">
+                <div class="text-5xl mb-4">✅</div>
+                <h3 class="text-2xl font-bold text-white mb-2">Thank You!</h3>
+                <p class="text-slate-300">Your feedback has been received and will be reviewed shortly.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Info Panel -->
+          <div class="space-y-6">
+            <!-- How to Report a Bug -->
+            <div class="bg-slate-800 border border-slate-700 rounded-lg p-6">
+              <h3 class="text-white font-bold text-lg mb-4">🐛 How to Report a Bug</h3>
+              <ul class="space-y-3 text-sm text-slate-300">
+                <li class="flex gap-3">
+                  <span class="text-blue-400 font-bold">1.</span>
+                  <span>Describe the issue clearly</span>
+                </li>
+                <li class="flex gap-3">
+                  <span class="text-blue-400 font-bold">2.</span>
+                  <span>Include steps to reproduce</span>
+                </li>
+                <li class="flex gap-3">
+                  <span class="text-blue-400 font-bold">3.</span>
+                  <span>Share expected vs actual behavior</span>
+                </li>
+                <li class="flex gap-3">
+                  <span class="text-blue-400 font-bold">4.</span>
+                  <span>Include screenshots if possible</span>
+                </li>
+              </ul>
+            </div>
+
+            <!-- Feature Requests -->
+            <div class="bg-slate-800 border border-slate-700 rounded-lg p-6">
+              <h3 class="text-white font-bold text-lg mb-4">✨ Feature Requests</h3>
+              <p class="text-slate-300 text-sm mb-4">
+                Have an idea to make SP_Rite Width Finder better? We'd love to hear it!
+              </p>
+              <a href="https://github.com/i250817-oss/SP_Rite-Width-Finder/issues" target="_blank" rel="noopener noreferrer" class="inline-block text-blue-400 hover:text-blue-300 font-semibold">
+                View GitHub Issues →
+              </a>
+            </div>
+
+            <!-- Contact Info -->
+            <div class="bg-slate-800 border border-slate-700 rounded-lg p-6">
+              <h3 class="text-white font-bold text-lg mb-4">📧 Contact Ahmad Ali</h3>
+              <div class="space-y-3">
+                <a href="https://www.linkedin.com/in/ahmad-ali-745606385/" target="_blank" rel="noopener noreferrer" class="block text-blue-400 hover:text-blue-300 text-sm font-semibold">
+                  🔗 LinkedIn Profile
+                </a>
+                <a href="https://github.com/i250817-oss/SP_Rite-Width-Finder" target="_blank" rel="noopener noreferrer" class="block text-blue-400 hover:text-blue-300 text-sm font-semibold">
+                  🐙 GitHub Repository
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-slate-950 border-t border-slate-700 mt-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
+        <div>
+          <h3 class="text-lg font-bold text-white mb-4">SP_Rite Width Finder</h3>
+          <p class="text-slate-400 text-sm">
+            Simplifying sprite management for game developers and students worldwide.
+          </p>
+        </div>
+        <div>
+          <h4 class="text-white font-semibold mb-4">Quick Links</h4>
+          <ul class="space-y-2 text-sm">
+            <li><button onclick="navigateTo('landing')" class="text-blue-400 hover:text-blue-300">Home</button></li>
+            <li><button onclick="navigateTo('tool')" class="text-blue-400 hover:text-blue-300">Sprite Finder</button></li>
+            <li><button onclick="navigateTo('feedback')" class="text-blue-400 hover:text-blue-300">Report Bug</button></li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="text-white font-semibold mb-4">Connect with Ahmad Ali</h4>
+          <ul class="space-y-2 text-sm">
+            <li>
+              <a href="https://www.linkedin.com/in/ahmad-ali-745606385/" target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:text-blue-300 flex items-center gap-2">
+                🔗 LinkedIn
+              </a>
+            </li>
+            <li>
+              <a href="https://github.com/i250817-oss/SP_Rite-Width-Finder" target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:text-blue-300 flex items-center gap-2">
+                🐙 GitHub Repository
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+      <div class="border-t border-slate-700 pt-6">
+        <p class="text-center text-slate-400 text-sm">
+          Built by <span class="font-semibold text-white">Ahmad Ali</span> (i250817-oss)
+        </p>
+        <p class="text-center text-slate-500 text-xs mt-2">
+          © 2025 SP_Rite Width Finder. All rights reserved.
+        </p>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Application State
+    let appState = {
+      currentPage: 'landing',
+      spriteData: [],
+      selectedSprite: null,
+      pixelInfo: null,
+      canvas: null,
+      context: null
+    };
+
+    // Navigation
+    function navigateTo(page) {
+      appState.currentPage = page;
+      
+      // Hide all pages
+      document.querySelectorAll('.page-content').forEach(el => el.classList.add('hidden'));
+      
+      // Show selected page
+      document.getElementById(page + '-page').classList.remove('hidden');
+      
+      // Update navigation buttons
+      document.querySelectorAll('nav button').forEach((btn, idx) => {
+        const pages = ['landing', 'tool', 'feedback'];
+        if (pages[idx] === page) {
+          btn.classList.remove('text-slate-300', 'hover:text-white', 'hover:bg-slate-800');
+          btn.classList.add('bg-blue-500', 'text-white');
+        } else {
+          btn.classList.add('text-slate-300', 'hover:text-white', 'hover:bg-slate-800');
+          btn.classList.remove('bg-blue-500', 'text-white');
+        }
+      });
+    }
+
+    // Image Upload Handler
+    function handleImageUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = document.getElementById('sprite-image');
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    // Image Load Handler
+    function handleImageLoad(event) {
+      const img = event.target;
+      const container = document.getElementById('image-container');
+      const noImage = document.getElementById('no-image');
+      const pixelInfoSection = document.getElementById('pixel-info-section');
+
+      // Setup canvas
+      const canvas = document.getElementById('canvas');
+      canvas.width = img.naturalWidth;
+      canvas.height = img.naturalHeight;
+      
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0);
+      
+      appState.canvas = canvas;
+      appState.context = ctx;
+
+      // Show image container, hide no-image
+      container.classList.remove('hidden');
+      noImage.classList.add('hidden');
+      pixelInfoSection.classList.remove('hidden');
+
+      // Add event listeners
+      img.addEventListener('click', handleCanvasClick);
+      img.addEventListener('mousemove', handleCanvasMouseMove);
+    }
+
+    // Canvas Click Handler
+    function handleCanvasClick(e) {
+      if (!appState.canvas) return;
+
+      const img = document.getElementById('sprite-image');
+      const rect = img.getBoundingClientRect();
+      const scaleX = img.naturalWidth / rect.width;
+      const scaleY = img.naturalHeight / rect.height;
+      
+      const x = Math.floor((e.clientX - rect.left) * scaleX);
+      const y = Math.floor((e.clientY - rect.top) * scaleY);
+
+      const imageData = appState.context.getImageData(x, y, 1, 1);
+      const [r, g, b, a] = imageData.data;
+      const color = `rgb(${r}, ${g}, ${b}, ${(a / 255).toFixed(2)})`;
+
+      appState.pixelInfo = { x, y, color };
+
+      // Create sprite
+      const newSprite = {
+        id: `sprite-${Date.now()}`,
+        x,
+        y,
+        width: 32,
+        height: 32,
+        index: appState.spriteData.length,
+        name: `Sprite ${appState.spriteData.length + 1}`,
+        imageData: color
+      };
+
+      appState.spriteData.push(newSprite);
+      updateSpritesList();
+    }
+
+    // Canvas Mouse Move Handler
+    function handleCanvasMouseMove(e) {
+      if (!appState.canvas) return;
+
+      const img = document.getElementById('sprite-image');
+      const rect = img.getBoundingClientRect();
+      const scaleX = img.naturalWidth / rect.width;
+      const scaleY = img.naturalHeight / rect.height;
+      
+      const x = Math.floor((e.clientX - rect.left) * scaleX);
+      const y = Math.floor((e.clientY - rect.top) * scaleY);
+
+      document.getElementById('pixel-x').textContent = x;
+      document.getElementById('pixel-y').textContent = y;
+    }
+
+    // Update Sprites List
+    function updateSpritesList() {
+      const spritesList = document.getElementById('sprites-list');
+      const spriteCount = document.getElementById('sprite-count');
+      const exportSection = document.getElementById('export-section');
+
+      spriteCount.textContent = appState.spriteData.length;
+
+      if (appState.spriteData.length === 0) {
+        spritesList.innerHTML = '<p class="text-slate-400 text-sm text-center py-4">No sprites detected yet</p>';
+        exportSection.classList.add('hidden');
+      } else {
+        spritesList.innerHTML = appState.spriteData.map(sprite => `
+          <div class="p-3 rounded-lg cursor-pointer transition-colors ${
+            appState.selectedSprite?.id === sprite.id 
+              ? 'bg-blue-600 border border-blue-400' 
+              : 'bg-slate-700 hover:bg-slate-600 border border-slate-600'
+          }" onclick="selectSprite('${sprite.id}')">
+            <p class="text-white text-sm font-semibold">${sprite.name}</p>
+            <p class="text-slate-300 text-xs mt-1">X: ${sprite.x}, Y: ${sprite.y}</p>
+            <p class="text-slate-300 text-xs">W: ${sprite.width}, H: ${sprite.height}</p>
+          </div>
+        `).join('');
+        exportSection.classList.remove('hidden');
+      }
+    }
+
+    // Select Sprite
+    function selectSprite(id) {
+      const sprite = appState.spriteData.find(s => s.id === id);
+      appState.selectedSprite = sprite;
+      
+      if (sprite) {
+        document.getElementById('sprite-details-section').classList.remove('hidden');
+        document.getElementById('sprite-name').value = sprite.name || '';
+        document.getElementById('sprite-x').textContent = sprite.x;
+        document.getElementById('sprite-y').textContent = sprite.y;
+        document.getElementById('sprite-width').textContent = sprite.width;
+        document.getElementById('sprite-height').textContent = sprite.height;
+      }
+
+      updateSpritesList();
+    }
+
+    // Update Selected Sprite
+    function updateSelectedSprite() {
+      if (!appState.selectedSprite) return;
+      const newName = document.getElementById('sprite-name').value;
+      appState.selectedSprite.name = newName;
+      
+      const spriteIndex = appState.spriteData.findIndex(s => s.id === appState.selectedSprite.id);
+      if (spriteIndex !== -1) {
+        appState.spriteData[spriteIndex].name = newName;
+      }
+      
+      updateSpritesList();
+    }
+
+    // Export to CSV
+    function exportToCSV() {
+      if (appState.spriteData.length === 0) {
+        alert('No sprite data to export');
+        return;
+      }
+
+      const headers = ['ID', 'Name', 'X', 'Y', 'Width', 'Height', 'Index', 'Color'];
+      const rows = appState.spriteData.map(sprite => [
+        sprite.id,
+        sprite.name || '',
+        sprite.x,
+        sprite.y,
+        sprite.width,
+        sprite.height,
+        sprite.index,
+        sprite.imageData || ''
+      ]);
+
+      const csvContent = [
+        headers.join(','),
+        ...rows.map(row => row.join(','))
+      ].join('\n');
+
+      const blob = new Blob([csvContent], { type: 'text/csv' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'sprites-data.csv';
+      a.click();
+      window.URL.revokeObjectURL(url);
+    }
+
+    // Clear Data
+    function clearData() {
+      appState.spriteData = [];
+      appState.selectedSprite = null;
+      appState.pixelInfo = null;
+      document.getElementById('sprite-details-section').classList.add('hidden');
+      updateSpritesList();
+    }
+
+    // Handle Feedback Submit
+    function handleFeedbackSubmit(event) {
+      event.preventDefault();
+
+      const formData = new FormData(event.target);
+      const feedback = {
+        type: formData.get('feedbackType'),
+        name: formData.get('name'),
+        email: formData.get('email'),
+        title: formData.get('title'),
+        description: formData.get('description'),
+        timestamp: new Date().toISOString()
+      };
+
+      console.log('Feedback submitted:', feedback);
+
+      const form = document.getElementById('feedback-form');
+      const successMessage = document.getElementById('feedback-success');
+
+      form.classList.add('hidden');
+      successMessage.classList.remove('hidden');
+
+      setTimeout(() => {
+        form.classList.remove('hidden');
+        successMessage.classList.add('hidden');
+        form.reset();
+      }, 3000);
+
+      alert(`Thank you for your feedback!\n\nType: ${feedback.type}\nTitle: ${feedback.title}\n\nYou can also submit this directly on GitHub: https://github.com/i250817-oss/SP_Rite-Width-Finder/issues`);
+    }
+
+    // Initialize on page load
+    window.addEventListener('load', () => {
+      navigateTo('landing');
+    });
+  </script>
+</body>
+</html>
